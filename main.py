@@ -83,82 +83,97 @@ class MercuriusVox:
     
     def on_press(self, key):
         """Callback quando tecla é pressionada"""
-        if key == self.activation_key and not self.is_recording:
-            self.is_recording = True
-            self.start_time = time.time()
-            self.recorder.start()
-            
-            # Mostrar indicador visual
-            if self.indicator:
-                self.indicator.show()
-            
-            self._print_status("🎤 Gravando... (solte a tecla para transcrever)", Fore.RED)
+        try:
+            if key == self.activation_key and not self.is_recording:
+                self.is_recording = True
+                self.start_time = time.time()
+                self.recorder.start()
+                
+                # Mostrar indicador visual
+                if self.indicator:
+                    self.indicator.show()
+                
+                self._print_status("🎤 Gravando... (solte a tecla para transcrever)", Fore.RED)
+        except Exception as e:
+            print(f"⚠️  Erro ao processar tecla: {e}")
+            # Não retorna False para não parar o listener
     
     def on_release(self, key):
         """Callback quando tecla é solta"""
-        if key == self.activation_key and self.is_recording:
-            self.is_recording = False
-            duration = time.time() - self.start_time
+        try:
+            # Teclas de saída: ESC ou CMD+Q
+            if key == keyboard.Key.esc:
+                self._print_status("\n👋 Saindo (ESC pressionado)...", Fore.CYAN)
+                return False
             
-            # Esconder indicador visual
-            if self.indicator:
-                self.indicator.hide()
+            # Verificar se é CMD+Q (sair)
+            if hasattr(key, 'char') and key.char == 'q':
+                # Nota: CMD+Q é capturado pelo sistema, mas mantemos por compatibilidade
+                self._print_status("\n👋 Saindo...", Fore.CYAN)
+                return False
             
-            self._clear_line()
-            self._print_status("⏳ Transcrevendo...", Fore.YELLOW)
-            
-            # Parar gravação e obter arquivo
-            audio_path = self.recorder.stop()
-            
-            if audio_path is None:
-                self._print_status("⚠️  Nenhum áudio capturado", Fore.YELLOW)
-                return
-            
-            # Transcrever
-            result = self.transcriber.transcribe(audio_path)
-            
-            # Limpar arquivo temporário
-            cleanup_temp_file(audio_path)
-            
-            self._clear_line()
-            
-            if result["success"] and result["text"]:
-                text = result["text"]
+            if key == self.activation_key and self.is_recording:
+                self.is_recording = False
+                duration = time.time() - self.start_time
                 
-                # Processar texto de forma inteligente
-                if SMART_TYPING:
-                    action = self.typer.process_text(text)
+                # Esconder indicador visual
+                if self.indicator:
+                    self.indicator.hide()
+                
+                self._clear_line()
+                self._print_status("⏳ Transcrevendo...", Fore.YELLOW)
+                
+                # Parar gravação e obter arquivo
+                audio_path = self.recorder.stop()
+                
+                if audio_path is None:
+                    self._print_status("⚠️  Nenhum áudio capturado", Fore.YELLOW)
+                    return
+                
+                # Transcrever
+                result = self.transcriber.transcribe(audio_path)
+                
+                # Limpar arquivo temporário
+                cleanup_temp_file(audio_path)
+                
+                self._clear_line()
+                
+                if result["success"] and result["text"]:
+                    text = result["text"]
+                    
+                    # Processar texto de forma inteligente
+                    if SMART_TYPING:
+                        action = self.typer.process_text(text)
+                    else:
+                        self.typer.copy_only(text)
+                        action = "copied"
+                    
+                    # Montar mensagem
+                    msg_parts = []
+                    
+                    if action == "typed":
+                        msg_parts.append("✅ Digitado")
+                    elif action == "copied":
+                        msg_parts.append("📋 Copiado (cole com CMD+V)")
+                    
+                    if SHOW_LANGUAGE:
+                        msg_parts.append(f"[{result['language']}]")
+                    
+                    if SHOW_DURATION:
+                        msg_parts.append(f"({duration:.1f}s)")
+                    
+                    msg_parts.append(f": {text}")
+                    
+                    self._print_status(" ".join(msg_parts), Fore.GREEN)
                 else:
-                    self.typer.copy_only(text)
-                    action = "copied"
+                    error = result.get("error", "Erro desconhecido")
+                    self._print_status(f"❌ Falha na transcrição: {error}", Fore.RED)
                 
-                # Montar mensagem
-                msg_parts = []
-                
-                if action == "typed":
-                    msg_parts.append("✅ Digitado")
-                elif action == "copied":
-                    msg_parts.append("📋 Copiado (cole com CMD+V)")
-                
-                if SHOW_LANGUAGE:
-                    msg_parts.append(f"[{result['language']}]")
-                
-                if SHOW_DURATION:
-                    msg_parts.append(f"({duration:.1f}s)")
-                
-                msg_parts.append(f": {text}")
-                
-                self._print_status(" ".join(msg_parts), Fore.GREEN)
-            else:
-                error = result.get("error", "Erro desconhecido")
-                self._print_status(f"❌ Falha na transcrição: {error}", Fore.RED)
-            
-            print()  # Nova linha para próxima gravação
+                print()  # Nova linha para próxima gravação
         
-        # ESC para sair
-        if key == keyboard.Key.esc:
-            self._print_status("\n👋 Saindo...", Fore.CYAN)
-            return False
+        except Exception as e:
+            print(f"⚠️  Erro ao processar soltura de tecla: {e}")
+            # Não retorna False para não parar o listener
     
     def run(self):
         """Inicia o loop principal da aplicação"""
@@ -185,17 +200,25 @@ class MercuriusVox:
         else:
             self._print_status(f"📌 Sempre copia - cole com CMD+V", Fore.CYAN)
         
-        self._print_status(f"📌 Pressione [ESC] para sair", Fore.CYAN)
+        self._print_status(f"📌 Pressione [ESC] ou [CTRL+C] para sair", Fore.CYAN)
         print()
         self._print_status("🔊 Pronto! Aguardando...", Fore.GREEN)
         print()
         
-        # Iniciar listener de teclado
-        with keyboard.Listener(
-            on_press=self.on_press,
-            on_release=self.on_release
-        ) as listener:
-            listener.join()
+        # Iniciar listener de teclado com keepalive
+        try:
+            with keyboard.Listener(
+                on_press=self.on_press,
+                on_release=self.on_release,
+                suppress=False  # Não suprimir eventos do sistema
+            ) as listener:
+                listener.join()
+        except Exception as e:
+            self._print_status(f"\n❌ Erro no listener: {e}", Fore.RED)
+            self._print_status("🔄 Reiniciando listener...", Fore.YELLOW)
+            time.sleep(1)
+            # Tentar reiniciar recursivamente
+            self.run()
 
 
 def main():
@@ -204,9 +227,13 @@ def main():
         app = MercuriusVox()
         app.run()
     except KeyboardInterrupt:
-        print(f"\n{Fore.CYAN}👋 Interrompido pelo usuário{Style.RESET_ALL}")
+        print(f"\n{Fore.CYAN}👋 Saindo (CTRL+C pressionado)...{Style.RESET_ALL}")
+        sys.exit(0)
     except Exception as e:
-        print(f"\n{Fore.RED}❌ Erro: {e}{Style.RESET_ALL}")
+        print(f"\n{Fore.RED}❌ Erro fatal: {e}{Style.RESET_ALL}")
+        import traceback
+        traceback.print_exc()
+        print(f"\n{Fore.YELLOW}💡 Tente executar novamente. Se o erro persistir, verifique as permissões.{Style.RESET_ALL}")
         sys.exit(1)
 
 
