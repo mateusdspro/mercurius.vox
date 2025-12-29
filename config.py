@@ -50,3 +50,12 @@ SMART_TYPING = True  # Detecta campo de texto automaticamente
 # =============================================================================
 SHOW_PASTE_NOTIFICATION = True  # Mostrar notificação quando copiar
 NOTIFICATION_SOUND = "Glass"    # Som: Glass, Ping, Pop, Purr, Funk
+
+# =============================================================================
+# IDIOMA
+# =============================================================================
+# Idioma padrão: pt (português) ou en (inglês)
+LANGUAGE = "pt"  # Começa tentando português
+
+# Idiomas permitidos (bloqueia búlgaro, romeno, etc)
+ALLOWED_LANGUAGES = ["pt", "en"]  # APENAS português e inglês

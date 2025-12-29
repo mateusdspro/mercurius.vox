@@ -38,37 +38,16 @@ class SmartTyper:
     
     def has_active_text_field(self):
         """
-        Verifica se há um campo de texto ativo
+        UNIVERSAL: Funciona em TODOS os aplicativos
+        Sempre retorna True para tentar colar automaticamente
         
         Returns:
-            bool: True se há campo de texto ativo, False caso contrário
+            bool: Sempre True (tenta colar em qualquer app)
         """
-        try:
-            workspace = NSWorkspace.sharedWorkspace()
-            active_app = workspace.activeApplication()
-            app_name = active_app.get('NSApplicationName', '')
-            
-            # Lista de apps conhecidos com campos de texto
-            text_apps = [
-                'Notes', 'TextEdit', 'Pages', 'Word', 'Microsoft Word',
-                'Google Chrome', 'Chrome', 'Safari', 'Firefox',
-                'Slack', 'WhatsApp', 'Telegram', 'Messages',
-                'Mail', 'Notion', 'Bear', 'Obsidian',
-                'Visual Studio Code', 'Cursor', 'Sublime Text',
-                'Evernote', 'OneNote', 'Keynote', 'Numbers',
-                'Terminal', 'iTerm', 'Atom', 'Code'
-            ]
-            
-            # Verifica se é um app de texto
-            for app in text_apps:
-                if app.lower() in app_name.lower():
-                    return True
-            
-            # Se não reconhecer, assume que NÃO tem campo
-            return False
-            
-        except Exception:
-            return False
+        # SEMPRE tenta colar - funciona universalmente!
+        # Se não houver campo de texto, o CMD+V simplesmente não faz nada
+        # Mas o texto fica no clipboard para você colar manualmente depois
+        return True
     
     def process_text(self, text: str):
         """

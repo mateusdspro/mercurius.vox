@@ -5,7 +5,7 @@ Módulo de transcrição usando Whisper local
 import whisper
 import torch
 
-from config import WHISPER_MODEL
+from config import WHISPER_MODEL, LANGUAGE, ALLOWED_LANGUAGES
 
 
 class Transcriber:
@@ -58,16 +58,21 @@ class Transcriber:
             self.load_model()
         
         try:
-            # Transcrever com detecção automática de idioma
+            # Transcrever focando em PT/EN apenas
             result = self.model.transcribe(
                 audio_path,
-                language=None,  # Detecta automaticamente
+                language=LANGUAGE,  # Português como base
                 task="transcribe",
-                fp16=False  # Mais compatível com diferentes hardwares
+                fp16=False,  # Mais compatível com diferentes hardwares
+                condition_on_previous_text=False
             )
             
             text = result.get("text", "").strip()
             language = result.get("language", "unknown")
+            
+            # Bloqueia idiomas não permitidos
+            if language not in ALLOWED_LANGUAGES:
+                language = LANGUAGE  # Força português se detectou outro idioma
             
             # Mapear códigos de idioma para nomes
             language_names = {
