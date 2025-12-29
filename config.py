@@ -2,11 +2,13 @@
 Configurações centralizadas do Mercurius.Vox
 """
 
+import os
+
 # =============================================================================
 # TECLA DE ATIVAÇÃO
 # =============================================================================
-# Tecla Fn do MacBook (mapeada como F13)
-ACTIVATION_KEY = "Key.f13"
+# Tecla Option DIREITA (⌥) - mais confiável que Fn
+ACTIVATION_KEY = "Key.alt_r"
 
 # =============================================================================
 # MODELO WHISPER
@@ -27,12 +29,13 @@ CHANNELS = 1  # Mono
 # DIRETÓRIOS
 # =============================================================================
 TEMP_DIR = "/tmp/mercurius_vox"
+CACHE_DIR = os.path.expanduser("~/.cache/mercurius_vox")
 
 # =============================================================================
 # FEEDBACK VISUAL
 # =============================================================================
-SHOW_LANGUAGE = True  # Mostrar idioma detectado
-SHOW_DURATION = True  # Mostrar duração da gravação
+SHOW_LANGUAGE = True       # Mostrar idioma detectado
+SHOW_DURATION = True       # Mostrar duração da gravação
 SHOW_VISUAL_INDICATOR = True  # Mostrar ícone de microfone quando gravando
 
 # =============================================================================
@@ -47,4 +50,3 @@ SMART_TYPING = True  # Detecta campo de texto automaticamente
 # =============================================================================
 SHOW_PASTE_NOTIFICATION = True  # Mostrar notificação quando copiar
 NOTIFICATION_SOUND = "Glass"    # Som: Glass, Ping, Pop, Purr, Funk
-
