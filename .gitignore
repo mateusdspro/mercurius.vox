@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Temporary files
+/tmp/
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Whisper models cache
+~/.cache/whisper/
